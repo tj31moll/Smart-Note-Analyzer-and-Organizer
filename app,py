@@ -2,13 +2,32 @@ import openai
 import pandas as pd
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, g
 import csv
+import sqlite3
 
 app = Flask(__name__)
 
+DATABASE = 'notes.db'
+app.config.from_object(__name__)
+
 # Authenticate with OpenAI API
 openai.api_key = "YOUR_API_KEY"
+
+def connect_db():
+    rv = sqlite3.connect(app.config['DATABASE'])
+    rv.row_factory = sqlite3.Row
+    return rv
+
+def get_db():
+    if not hasattr(g, 'sqlite_db'):
+        g.sqlite_db = connect_db()
+    return g.sqlite_db
+
+@app.teardown_appcontext
+def close_db(error):
+    if hasattr(g, 'sqlite_db'):
+        g.sqlite_db.close()
 
 @app.route('/')
 def index():
@@ -57,20 +76,30 @@ def analyze():
 
     notes_sorted = sorted(notes_sorted, key=lambda x: x[3], reverse=True)
 
-    # Export notes to CSV file in Google Keep-compatible format
-    with open('notes.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Title', 'Text', 'Labels'])
-        for note in notes_sorted:
-            writer.writerow([note[1], note[0], ",".join(note[2])])
+    # Save notes to database
+    db = get_db()
+    db.execute('DELETE FROM notes')
+    for note in notes_sorted:
+        db.execute('INSERT INTO notes (title, text, labels) VALUES (?, ?, ?)', [note[1], note[0], ",".join(note[2])])
+    db.commit()
 
     # Render results template
     return render_template('results.html', notes_sorted=notes_sorted)
 
 @app.route('/download')
 def download():
+    db = get_db()
+    notes = db.execute('SELECT * FROM notes').fetchall()
+
+    # Export notes to CSV file in Google Keep-compatible format
+    with open('notes.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Title', 'Text', 'Labels'])
+        for note in notes:
+            writer.writerow([note['title'], note['text'], note['labels']])
+
     path = 'notes.csv'
     return send_file(path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True
