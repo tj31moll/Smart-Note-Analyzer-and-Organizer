@@ -2,7 +2,8 @@ import openai
 import pandas as pd
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
+import csv
 
 app = Flask(__name__)
 
@@ -56,8 +57,20 @@ def analyze():
 
     notes_sorted = sorted(notes_sorted, key=lambda x: x[3], reverse=True)
 
+    # Export notes to CSV file in Google Keep-compatible format
+    with open('notes.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Title', 'Text', 'Labels'])
+        for note in notes_sorted:
+            writer.writerow([note[1], note[0], ",".join(note[2])])
+
     # Render results template
     return render_template('results.html', notes_sorted=notes_sorted)
+
+@app.route('/download')
+def download():
+    path = 'notes.csv'
+    return send_file(path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
