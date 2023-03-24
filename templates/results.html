@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Organizational Tool Results</title>
+  </head>
+  <body>
+    <h1>Organizational Tool Results</h1>
+    {% if notes_sorted %}
+      <table>
+        <tr>
+          <th>Summary</th>
+          <th>Tags</th>
+          <th>Completion Probability</th>
+          <th>Text</th>
+        </tr>
+        {% for note in notes_sorted %}
+          <tr>
+            <td>{{ note[1] }}</td>
+            <td>{{ note[2] }}</td>
+            <td>{{ note[3] }}</td>
+            <td>{{ note[0] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No results found.</p>
+    {% endif %}
+  </body>
+</html>
