@@ -3,6 +3,16 @@ from transformers import GPT2Tokenizer, TextDataset, GPT2Config, GPT2LMHeadModel
 
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+data = pd.read_csv('mylist.csv')
+
+train_data, valid_data = train_test_split(data, test_size=0.2, random_state=42)
+
+train_data.to_csv('train.csv', index=False)
+valid_data.to_csv('validation.csv', index=False)
+
 def load_dataset(file_path, tokenizer):
     data = pd.read_csv(file_path)
     data['combined'] = data['Item'] + ' | ' + data['Category']
@@ -18,8 +28,8 @@ def load_dataset(file_path, tokenizer):
     )
     return dataset
 
-train_dataset = load_dataset("mylist.csv", tokenizer)
-valid_dataset = load_dataset("mylist.csv", tokenizer)
+train_dataset = load_dataset("train.csv", tokenizer)
+valid_dataset = load_dataset("validation.csv", tokenizer)
 
 config = GPT2Config.from_pretrained("gpt2")
 model = GPT2LMHeadModel.from_pretrained("gpt2", config=config)
