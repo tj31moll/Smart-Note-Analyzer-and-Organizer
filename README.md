@@ -1,4 +1,3 @@
-```
 # Smart Note Analyzer and Organizer
 
 This Flask application leverages OpenAI's GPT for auto-summarizing and smart tagging of notes, and a machine learning model for task prioritization. It provides a user-friendly interface for note analysis, organization, and exportation.
@@ -72,4 +71,3 @@ CREATE TABLE notes (
 ## Note
 
 This is a demonstration application. Modify and use it according to your requirements and OpenAI usage policies.
-```
